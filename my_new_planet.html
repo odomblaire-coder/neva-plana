@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My First Planet</title>
+<link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+
+<button id="light-toggle" type="button" aria-pressed="false">Night Shine</button>
+<p id="view-message">Click here to see the night view of the planet.</p>
+
+<div id="moon-banner" hidden>
+  <span id="moon-caption"></span>
+  <button id="moon-close" type="button">Back to planet</button>
+</div>
+
+<!-- Tells the browser where "three" lives (the controls file needs this nickname) -->
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js" } }
+</script>
+
+<!-- main.js uses import, so this must be type="module" -->
+<script type="module" src="main.js?v=4"></script>
+</body>
+</html>
