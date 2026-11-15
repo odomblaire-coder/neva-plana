@@ -108,18 +108,18 @@ const moon3 = new THREE.Mesh(
 );
 scene.add(moon3);
 
-// ---------- 6. THE LOOP (the only one!) ----------
-// How fast each moon circles Saturn. Bigger number = faster. Lower a number to make that moon easier to click.
-const MOON_SPEED = { moon: 1.2, moon2: 1.5, moon3: 1.7 };
-const HOVER_SLOW = 0.12;                   // a moon slows to this fraction while your pointer is on it
+// ---------- 6. THE LOOP ----------
 
-// each moon keeps its own angle (a) and its own speed factor (f, easing toward tf)
+const MOON_SPEED = { moon: 1.2, moon2: 1.5, moon3: 1.7 };
+const HOVER_SLOW = 0.12;                  
+
+
 const spin = { moon: { a: 0, f: 1, tf: 1 }, moon2: { a: 0, f: 1, tf: 1 }, moon3: { a: 0, f: 1, tf: 1 } };
 
-let fly = null;      // the camera flight in progress, if any
-let focusedInfo = null;                    // the moon that is open right now
-let hoverInfo = null;                      // the moon the pointer is on right now
-const look = { x: 0, y: 0, tx: 0, ty: 0 }; // where the eyes look (-1..1), tx/ty = target
+let fly = null;      
+let focusedInfo = null;                   
+let hoverInfo = null;                      
+const look = { x: 0, y: 0, tx: 0, ty: 0 }; 
 let drawnX = 99, drawnY = 99;
 
 function updateEyes() {
@@ -137,10 +137,10 @@ function updateEyes() {
 }
 
 function animate() {
-  requestAnimationFrame(animate);          // first, so one hiccup can never stop the whole scene
+  requestAnimationFrame(animate);          
   planet.rotation.y += 0.003;
 
-  // Saturn and the other moons keep going; only the open moon holds still
+  
   for (const key in spin) {
     const s = spin[key];
     const info = moonByKey[key];
@@ -152,9 +152,9 @@ function animate() {
   moon2.position.set(Math.cos(spin.moon2.a + Math.PI) * 7.0, 2.6, Math.sin(spin.moon2.a + Math.PI) * 4.8);
   moon3.position.set(Math.cos(spin.moon3.a) * 7.8, -2.2, Math.sin(spin.moon3.a) * 5.0);
 
-  if (fly) {                                   // smooth camera move
+  if (fly) {                                  
     fly.k = Math.min(fly.k + 0.03, 1);
-    const e = fly.k * fly.k * (3 - 2 * fly.k); // ease in and out
+    const e = fly.k * fly.k * (3 - 2 * fly.k);
     camera.position.lerpVectors(fly.p0, fly.p1, e);
     controls.target.lerpVectors(fly.t0, fly.t1, e);
     if (fly.k === 1) { const done = fly.onDone; fly = null; if (done) done(); }
@@ -164,7 +164,7 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
-const moonByKey = {};                      // filled in below, once the moons' info exists
+const moonByKey = {};                     
 animate();
 
 window.addEventListener('resize', () => {
@@ -208,13 +208,10 @@ lightToggle.addEventListener('click', () => {
 // ---------- 8. CLICKABLE MOONS WITH PHOTO TEXTURES + FOLLOWING EYES ----------
 const textureLoader = new THREE.TextureLoader();
 
-// Set to true to see red outlines of the eye areas (handy for fine-tuning the numbers below)
+
 const DEBUG_EYES = false;
 
-// Eye positions are in the pixels of each 1024x1024 picture:
-//   x, y = middle of the eye   rx, ry = size of the eye opening (kept just inside the lids)
-//   rot  = tilt in degrees     r = iris radius
-// line = the color of the pencil lines drawn on that moon (the paper itself is see-through)
+
 const moonInfo = [
   { key: 'moon',  body: moon,  img: 'images/me.jpg',   caption: 'Me', line: '#f3edf8',
     eyes: [ { x: 435, y: 577, rx: 50, ry: 21, rot: 20, r: 27 },
@@ -229,8 +226,7 @@ const moonInfo = [
 
 const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
-// Turns the sketch into pencil lines on a see-through layer (paper -> transparent),
-// then cuts the eyes out of it so we can draw moving eyes there instead.
+
 function buildLineLayer(info) {
   const N = 1024, img = info.image;
   const s = Math.min(img.width, img.height);
@@ -245,7 +241,7 @@ function buildLineLayer(info) {
     lum[j] = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
     hist[lum[j]]++;
   }
-  let P = 255, sum = 0;                              // paper brightness = 92nd percentile
+  let P = 255, sum = 0;                             
   for (let v = 0; v < 256; v++) { sum += hist[v]; if (sum >= 0.92 * N * N) { P = v; break; } }
 
   const [lr, lg, lb] = hexToRgb(info.line);
@@ -255,7 +251,7 @@ function buildLineLayer(info) {
   }
   x.putImageData(d, 0, 0);
 
-  x.globalCompositeOperation = 'destination-out';    // cut the drawn eyes out
+  x.globalCompositeOperation = 'destination-out';    
   info.eyes.forEach(eye => {
     x.beginPath();
     x.ellipse(eye.x, eye.y, eye.rx, eye.ry, eye.rot * Math.PI / 180, 0, Math.PI * 2);
@@ -264,41 +260,41 @@ function buildLineLayer(info) {
   info.lineLayer = c;
 }
 
-// Draws the lines onto the moon's 2:1 canvas, then the eyes looking toward (lx, ly)
+
 function drawMoon(info, lx, ly) {
   const ctx = info.ctx, c = info.canvas;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = info.bg;                           // the moon's own color shows through
+  ctx.fillStyle = info.bg;                          
   ctx.fillRect(0, 0, c.width, c.height);
 
-  const size = 880;                                  // picture square in the middle
+  const size = 880;                                 
   const ox = (c.width - size) / 2, oy = (c.height - size) / 2;
   ctx.drawImage(info.lineLayer, 0, 0, 1024, 1024, ox, oy, size, size);
 
   const k = size / 1024;
   info.eyes.forEach(eye => {
     ctx.save();
-    ctx.setTransform(k, 0, 0, k, ox, oy);            // now we can use picture pixels
+    ctx.setTransform(k, 0, 0, k, ox, oy);           
     const rot = eye.rot * Math.PI / 180;
 
-    ctx.beginPath();                                 // light "eye white", kept inside the lids
+    ctx.beginPath();                                 
     ctx.ellipse(eye.x, eye.y, eye.rx, eye.ry, rot, 0, Math.PI * 2);
     ctx.fillStyle = info.eyeWhite;
     ctx.fill();
     ctx.clip();
 
-    const ix = eye.x + lx * eye.r * 0.75;            // iris, slid toward where we look
+    const ix = eye.x + lx * eye.r * 0.75;            
     const iy = eye.y + ly * eye.r * 0.6;
     ctx.fillStyle = '#242424';
     ctx.beginPath(); ctx.arc(ix, iy, eye.r, 0, Math.PI * 2); ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = '#0a0a0a'; ctx.stroke();
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.arc(ix, iy, eye.r * 0.45, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#fff';                          // little sparkle
+    ctx.fillStyle = '#fff';                         
     ctx.beginPath(); ctx.arc(ix - eye.r * 0.3, iy - eye.r * 0.32, eye.r * 0.2, 0, Math.PI * 2); ctx.fill();
 
     const lid = ctx.createLinearGradient(0, eye.y - eye.ry, 0, eye.y + eye.ry * 0.2);
-    lid.addColorStop(0, 'rgba(0,0,0,0.35)');         // soft shadow under the upper lid
+    lid.addColorStop(0, 'rgba(0,0,0,0.35)');        
     lid.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = lid;
     ctx.fillRect(eye.x - eye.rx * 1.5, eye.y - eye.ry * 1.5, eye.rx * 3, eye.ry * 3);
@@ -317,7 +313,7 @@ function drawMoon(info, lx, ly) {
 
 moonInfo.forEach(info => { moonByKey[info.key] = info; });
 
-// If a photo can't load, say so on screen instead of failing silently
+
 function showProblem(msg) {
   console.warn(msg);
   viewMessage.textContent = msg;
@@ -331,17 +327,17 @@ function setupPortrait(info, photoTex) {
   info.ctx = info.canvas.getContext('2d');
   info.bg = '#' + info.body.material.color.getHexString();
   const [br, bgc, bb] = hexToRgb(info.bg).map(v => Math.round(v + (255 - v) * 0.8));
-  info.eyeWhite = `rgb(${br},${bgc},${bb})`;       // the moon color, mostly whitened
+  info.eyeWhite = `rgb(${br},${bgc},${bb})`;       
   buildLineLayer(info);
   info.tex = new THREE.CanvasTexture(info.canvas);
   info.body.material.map = info.tex;
-  info.body.material.color.set(0xffffff);          // so the moon color isn't applied twice
+  info.body.material.color.set(0xffffff);          
   info.body.material.needsUpdate = true;
   info.ready = true;
   drawMoon(info, 0, 0);
 }
 
-// tries "images/me.jpg" first, then "me.jpg" (same folder as index.html)
+
 function loadPortrait(info, paths) {
   textureLoader.load(paths[0], photoTex => {
     try { setupPortrait(info, photoTex); }
@@ -355,7 +351,7 @@ function loadPortrait(info, paths) {
 }
 moonInfo.forEach(info => loadPortrait(info, [info.img, info.img.replace('images/', '')]));
 
-// invisible bigger bubbles make the small moons easier to click
+
 const hitSpheres = moonInfo.map(info => {
   const r = info.body.geometry.parameters.radius * 2.5;
   const hit = new THREE.Mesh(
@@ -391,10 +387,10 @@ function openMoon(info) {
   look.x = look.y = look.tx = look.ty = 0;
   home.pos.copy(camera.position);
   home.target.copy(controls.target);
-  controls.minDistance = 0.5;                       // allow getting close
+  controls.minDistance = 0.5;                    
 
   const mp = info.body.position.clone();
-  const dir = camera.position.clone().sub(mp).normalize();   // moon -> camera
+  const dir = camera.position.clone().sub(mp).normalize();  
   const radius = info.body.geometry.parameters.radius;
 
   startFly(mp.clone().add(dir.multiplyScalar(radius * 3.5)), mp);
@@ -405,7 +401,7 @@ function openMoon(info) {
 function closeMoon() {
   if (!focused) return;
   banner.hidden = true;
-  look.tx = look.ty = 0;                            // eyes look straight ahead again
+  look.tx = look.ty = 0;                           
   startFly(home.pos.clone(), home.target.clone(), () => {
     controls.minDistance = 12;
     if (focusedInfo) drawMoon(focusedInfo, 0, 0);
@@ -414,7 +410,7 @@ function closeMoon() {
   });
 }
 
-// the eyes follow the pointer (mouse, or a finger while it touches the screen)
+
 window.addEventListener('pointermove', e => {
   if (!focusedInfo) return;
   const v = focusedInfo.body.getWorldPosition(new THREE.Vector3()).project(camera);
@@ -426,12 +422,12 @@ window.addEventListener('pointermove', e => {
   look.tx = dx; look.ty = dy;
 });
 
-// tell a click apart from dragging the planet around
+
 let downX = 0, downY = 0;
 renderer.domElement.addEventListener('pointerdown', e => { downX = e.clientX; downY = e.clientY; });
 renderer.domElement.addEventListener('pointerup', e => {
   if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return;   // that was a drag
-  const hit = moonAt(e);                                   // also aims the raycaster at the pointer
+  const hit = moonAt(e);                                   
   if (focused) {
     // tapping anywhere except the open moon itself (empty space, Saturn) takes you back
     const onMoon = raycaster.intersectObject(focusedInfo.body, false).length > 0;
@@ -442,7 +438,7 @@ renderer.domElement.addEventListener('pointerup', e => {
 });
 renderer.domElement.addEventListener('pointermove', e => {
   const hit = focused ? null : moonAt(e);
-  hoverInfo = hit ? hit.object.userData.info : null;   // the moon under the pointer slows down
+  hoverInfo = hit ? hit.object.userData.info : null;   
   renderer.domElement.style.cursor = hit ? 'pointer' : 'default';
 });
 renderer.domElement.addEventListener('pointerleave', () => { hoverInfo = null; });
@@ -450,12 +446,4 @@ renderer.domElement.addEventListener('pointerleave', () => { hoverInfo = null; }
 document.getElementById('moon-close').addEventListener('click', closeMoon);
 window.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoon(); });
 
-/* ---------- TRY THIS (change one thing, save, refresh) ----------
-   1. Change the planet color: 0x4aa8a0 -> your own hex code with 0x in front.
-   2. Make the planet bigger or smaller: the 1.5 in SphereGeometry.
-   3. Speed up the moon: change t += 0.01 to t += 0.03.
-   4. Move the sun: change sun.position.set(5, 3, 5) to (-5, 3, 5).
-   5. Challenge: add a second moon with a different color and a different orbit.
-   6. Seastar challenge: replace the planet with a flat star shape (look up
-      "THREE.Shape" and "ExtrudeGeometry") and make it spin like a seastar.
-*/
+
